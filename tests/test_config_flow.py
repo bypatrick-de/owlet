@@ -6,12 +6,10 @@ from unittest.mock import patch
 from pyowletapi.exceptions import (
     OwletCredentialsError,
     OwletDevicesError,
-    OwletEmailError,
-    OwletPasswordError,
 )
 
 from homeassistant import config_entries
-from homeassistant.components.owlet.const import DOMAIN, POLLING_INTERVAL
+from custom_components.owlet.const import DOMAIN, POLLING_INTERVAL
 from homeassistant.config_entries import SOURCE_REAUTH, SOURCE_USER
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
@@ -32,10 +30,10 @@ async def test_form(hass: HomeAssistant) -> None:
     assert result["step_id"] == "user"
 
     with patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.authenticate",
+        "custom_components.owlet.config_flow.OwletAPI.authenticate",
         return_value=AUTH_RETURN,
     ), patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.validate_authentication"
+        "custom_components.owlet.config_flow.OwletAPI.validate_authentication"
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -58,8 +56,8 @@ async def test_form(hass: HomeAssistant) -> None:
 async def test_flow_wrong_password(hass: HomeAssistant) -> None:
     """Test incorrect login throwing error."""
     with patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.authenticate",
-        side_effect=OwletPasswordError(),
+        "custom_components.owlet.config_flow.OwletAPI.authenticate",
+        side_effect=OwletCredentialsError(),
     ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
@@ -70,14 +68,14 @@ async def test_flow_wrong_password(hass: HomeAssistant) -> None:
             user_input=CONF_INPUT,
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["errors"] == {"password": "invalid_password"}
+        assert result["errors"] == {"base": "invalid_credentials"}
 
 
 async def test_flow_wrong_email(hass: HomeAssistant) -> None:
     """Test incorrect login throwing error."""
     with patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.authenticate",
-        side_effect=OwletEmailError(),
+        "custom_components.owlet.config_flow.OwletAPI.authenticate",
+        side_effect=OwletCredentialsError(),
     ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
@@ -88,13 +86,13 @@ async def test_flow_wrong_email(hass: HomeAssistant) -> None:
             user_input=CONF_INPUT,
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["errors"] == {"username": "invalid_email"}
+        assert result["errors"] == {"base": "invalid_credentials"}
 
 
 async def test_flow_credentials_error(hass: HomeAssistant) -> None:
     """Test incorrect login throwing error."""
     with patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.authenticate",
+        "custom_components.owlet.config_flow.OwletAPI.authenticate",
         side_effect=OwletCredentialsError(),
     ):
         result = await hass.config_entries.flow.async_init(
@@ -112,7 +110,7 @@ async def test_flow_credentials_error(hass: HomeAssistant) -> None:
 async def test_flow_unknown_error(hass: HomeAssistant) -> None:
     """Test unknown error throwing error."""
     with patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.authenticate",
+        "custom_components.owlet.config_flow.OwletAPI.authenticate",
         side_effect=Exception(),
     ):
         result = await hass.config_entries.flow.async_init(
@@ -130,9 +128,9 @@ async def test_flow_unknown_error(hass: HomeAssistant) -> None:
 async def test_flow_no_devices(hass: HomeAssistant) -> None:
     """Test unknown error throwing error."""
     with patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.authenticate"
+        "custom_components.owlet.config_flow.OwletAPI.authenticate"
     ), patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.validate_authentication",
+        "custom_components.owlet.config_flow.OwletAPI.validate_authentication",
         side_effect=OwletDevicesError(),
     ):
         result = await hass.config_entries.flow.async_init(
@@ -160,7 +158,7 @@ async def test_reauth_success(hass: HomeAssistant) -> None:
     assert result["step_id"] == "reauth_confirm"
 
     with patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.authenticate",
+        "custom_components.owlet.config_flow.OwletAPI.authenticate",
         return_value=AUTH_RETURN,
     ):
         result = await hass.config_entries.flow.async_configure(
@@ -184,8 +182,8 @@ async def test_reauth_invalid_password(hass: HomeAssistant) -> None:
     )
 
     with patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.authenticate",
-        side_effect=OwletPasswordError(),
+        "custom_components.owlet.config_flow.OwletAPI.authenticate",
+        side_effect=OwletCredentialsError(),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], user_input={CONF_PASSWORD: "sample"}
@@ -193,7 +191,7 @@ async def test_reauth_invalid_password(hass: HomeAssistant) -> None:
 
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "reauth_confirm"
-        assert result["errors"] == {"password": "invalid_password"}
+        assert result["errors"] == {"base": "invalid_credentials"}
 
 
 async def test_reauth_unknown_error(hass: HomeAssistant) -> None:
@@ -206,7 +204,7 @@ async def test_reauth_unknown_error(hass: HomeAssistant) -> None:
     )
 
     with patch(
-        "homeassistant.components.owlet.config_flow.OwletAPI.authenticate",
+        "custom_components.owlet.config_flow.OwletAPI.authenticate",
         side_effect=Exception(),
     ):
         result = await hass.config_entries.flow.async_configure(
@@ -235,3 +233,15 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["title"] == ""
     assert result["data"] == {CONF_SCAN_INTERVAL: 10}
+
+
+async def test_connection_error(hass: HomeAssistant) -> None:
+    """Network failures show an actionable error instead of unknown."""
+    from pyowletapi.exceptions import OwletConnectionError
+
+    with patch("custom_components.owlet.config_flow.OwletAPI.authenticate",
+               side_effect=OwletConnectionError()):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": SOURCE_USER}, data=CONF_INPUT
+        )
+    assert result["errors"] == {"base": "cannot_connect"}

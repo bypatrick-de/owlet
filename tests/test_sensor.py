@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from homeassistant.core import HomeAssistant
 
-from . import async_init_integration
+from . import async_init_integration, get_state
 
 
 async def test_sensors_asleep(hass: HomeAssistant) -> None:
@@ -15,28 +15,26 @@ async def test_sensors_asleep(hass: HomeAssistant) -> None:
     assert len(hass.states.async_all("sensor")) == 8
 
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_battery_percentage").state
+        get_state(hass, "sensor", "battery_percentage").state
         == "50.0"
     )
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_battery_remaining").state
+        get_state(hass, "sensor", "battery_remaining").state
         == "400.0"
     )
-    assert hass.states.get("sensor.owlet_baby_care_sock_heart_rate").state == "97.0"
-    assert hass.states.get("sensor.owlet_baby_care_sock_o2_saturation").state == "99.0"
+    assert get_state(hass, "sensor", "heart_rate").state == "97.0"
+    assert get_state(hass, "sensor", "o2_saturation").state == "99.0"
     assert (
-        hass.states.get(
-            "sensor.owlet_baby_care_sock_o2_saturation_10_minute_average"
-        ).state
+        get_state(hass, "sensor", "o2_saturation_10_minute_average").state
         == "97.0"
     )
 
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_signal_strength").state == "30.0"
+        get_state(hass, "sensor", "signal_strength").state == "30.0"
     )
-    assert hass.states.get("sensor.owlet_baby_care_sock_skin_temperature").state == "34"
+    assert get_state(hass, "sensor", "skin_temperature").state == "34"
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_sleep_state").state
+        get_state(hass, "sensor", "sleep_state").state
         == "light_sleep"
     )
 
@@ -50,26 +48,24 @@ async def test_sensors_awake(hass: HomeAssistant) -> None:
     assert len(hass.states.async_all("sensor")) == 8
 
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_battery_percentage").state
+        get_state(hass, "sensor", "battery_percentage").state
         == "80.0"
     )
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_battery_remaining").state
+        get_state(hass, "sensor", "battery_remaining").state
         == "600.0"
     )
-    assert hass.states.get("sensor.owlet_baby_care_sock_heart_rate").state == "110.0"
-    assert hass.states.get("sensor.owlet_baby_care_sock_o2_saturation").state == "98.0"
+    assert get_state(hass, "sensor", "heart_rate").state == "110.0"
+    assert get_state(hass, "sensor", "o2_saturation").state == "98.0"
     assert (
-        hass.states.get(
-            "sensor.owlet_baby_care_sock_o2_saturation_10_minute_average"
-        ).state
+        get_state(hass, "sensor", "o2_saturation_10_minute_average").state
         == "98.0"
     )
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_signal_strength").state == "34.0"
+        get_state(hass, "sensor", "signal_strength").state == "34.0"
     )
-    assert hass.states.get("sensor.owlet_baby_care_sock_skin_temperature").state == "35"
-    assert hass.states.get("sensor.owlet_baby_care_sock_sleep_state").state == "awake"
+    assert get_state(hass, "sensor", "skin_temperature").state == "35"
+    assert get_state(hass, "sensor", "sleep_state").state == "awake"
 
 
 async def test_sensors_charging(hass: HomeAssistant) -> None:
@@ -81,32 +77,30 @@ async def test_sensors_charging(hass: HomeAssistant) -> None:
     assert len(hass.states.async_all("sensor")) == 8
 
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_battery_percentage").state
+        get_state(hass, "sensor", "battery_percentage").state
         == "100.0"
     )
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_battery_remaining").state
-        == "unknown"
+        get_state(hass, "sensor", "battery_remaining").state
+        == "unavailable"
     )
-    assert hass.states.get("sensor.owlet_baby_care_sock_heart_rate").state == "unknown"
+    assert get_state(hass, "sensor", "heart_rate").state == "unavailable"
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_o2_saturation").state == "unknown"
+        get_state(hass, "sensor", "o2_saturation").state == "unavailable"
     )
     assert (
-        hass.states.get(
-            "sensor.owlet_baby_care_sock_o2_saturation_10_minute_average"
-        ).state
-        == "unknown"
+        get_state(hass, "sensor", "o2_saturation_10_minute_average").state
+        == "unavailable"
     )
 
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_signal_strength").state == "34.0"
+        get_state(hass, "sensor", "signal_strength").state == "34.0"
     )
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_skin_temperature").state
-        == "unknown"
+        get_state(hass, "sensor", "skin_temperature").state
+        == "unavailable"
     )
-    assert hass.states.get("sensor.owlet_baby_care_sock_sleep_state").state == "unknown"
+    assert get_state(hass, "sensor", "sleep_state").state == "unavailable"
 
 
 async def test_sensors_v2(hass: HomeAssistant) -> None:
@@ -115,12 +109,12 @@ async def test_sensors_v2(hass: HomeAssistant) -> None:
     assert len(hass.states.async_all("sensor")) == 4
 
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_battery_percentage").state == "29"
+        get_state(hass, "sensor", "battery_percentage").state == "29"
     )
-    assert hass.states.get("sensor.owlet_baby_care_sock_heart_rate").state == "145"
-    assert hass.states.get("sensor.owlet_baby_care_sock_o2_saturation").state == "99"
+    assert get_state(hass, "sensor", "heart_rate").state == "145"
+    assert get_state(hass, "sensor", "o2_saturation").state == "99"
 
     assert (
-        hass.states.get("sensor.owlet_baby_care_sock_signal_strength").state == "98.0"
+        get_state(hass, "sensor", "signal_strength").state == "98.0"
     )
 

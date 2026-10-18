@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from homeassistant.components.owlet.const import (
+from custom_components.owlet.const import (
     CONF_OWLET_EXPIRY,
     CONF_OWLET_REFRESH,
     DOMAIN,
@@ -18,7 +18,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 
-from tests.common import MockConfigEntry, load_fixture
+from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
 
 
 async def async_init_integration(
@@ -46,15 +46,24 @@ async def async_init_integration(
 
     if not skip_setup:
         with patch(
-            "homeassistant.components.owlet.OwletAPI.get_properties",
-            return_value=json.loads(load_fixture(properties_fixture, "owlet")),
+            "custom_components.owlet.OwletAPI.get_properties",
+            return_value=json.loads(load_fixture(properties_fixture)),
         ), patch(
-            "homeassistant.components.owlet.OwletAPI.authenticate", return_value=None
+            "custom_components.owlet.OwletAPI.authenticate", return_value=None
         ), patch(
-            "homeassistant.components.owlet.OwletAPI.get_devices",
-            return_value=json.loads(load_fixture(devices_fixture, "owlet")),
+            "custom_components.owlet.OwletAPI.get_devices",
+            return_value=json.loads(load_fixture(devices_fixture)),
         ):
             await hass.config_entries.async_setup(entry.entry_id)
             await hass.async_block_till_done()
 
     return entry
+
+
+def get_state(hass, domain, suffix):
+    """Find fixture entities independently of HA's area-name prefix policy."""
+    matches = [state for state in hass.states.async_all(domain)
+               if state.entity_id.endswith("_owlet_sock_serial_number_" + suffix)
+               or state.entity_id == f"{domain}.owlet_sock_serial_number_{suffix}"]
+    assert len(matches) == 1, (suffix, [s.entity_id for s in hass.states.async_all(domain)])
+    return matches[0]
