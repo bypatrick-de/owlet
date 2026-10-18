@@ -1,0 +1,36 @@
+Owlet 2026.10.0b1 – Entwicklungsstand vom 18.10.2026
+
+Basis: https://github.com/ryanbdclark/owlet
+Upstream-Commit: f8e0067a1e74a523b0bb4b0841b25404a6926ca8
+Entwicklungszweig: codex/modernize-owlet
+Lizenz: Apache-2.0, siehe LICENSE. Ursprüngliche Urheberangaben erhalten.
+
+Änderungen:
+- pyowletapi auf 2025.4.10 aktualisiert, entfernte Fehlerklassen ersetzt.
+- Optionsdialog auf die aktuelle HA-Schnittstelle angepasst.
+- Fehler bei abgelaufenen Zugangsdaten korrigiert (CONF_EMAIL-KeyError).
+- Abfrageintervall wird bei Optionsänderung übernommen; Standard 5 Sekunden.
+- Netzwerk- und Anmeldefehler im Einrichtungsdialog verständlich gemeldet.
+- Testinfrastruktur für custom_components repariert und CI hinzugefügt.
+- Englische Beschriftung des Abfrageintervalls korrigiert.
+
+Validierung: 30 automatisierte Tests unter Home Assistant 2026.10.2,
+Python 3.14 und pyowletapi 2025.4.10 bestanden. Testdaten sind simuliert;
+kein Login am echten Owlet-Konto, kein Live-Gerätetest und kein HA-Neustart.
+Die angegebene HACS-Mindestversion 2024.12.0 folgt dem OptionsFlow-API;
+diese ältere HA-Version wurde nicht getestet.
+
+Installation erst nach Sicherung:
+1. Vorhandenen Ordner /config/custom_components/owlet sichern.
+2. Den Ordner custom_components/owlet dieses Pakets an dessen Stelle kopieren.
+3. Home Assistant nach eigener Freigabe neu starten.
+4. Anmeldung, Sensorwerte und Abfrageintervall prüfen.
+Rückkehr: Gesicherten Ordner wiederherstellen und HA neu starten.
+
+Offen vor einer stabilen Veröffentlichung:
+- EU-Anmeldung und Token-Erneuerung mit dem eigenen Gerät testen.
+- Langzeittest und Datenfrische prüfen (eingefrorene Cloud-Werte).
+- Eigenen GitHub-Fork anlegen und Dokumentations-/Issue-URLs umstellen.
+- HACS-Release-Artefakt owlet.zip erstellen; dies hier ist das Entwicklungspaket.
+
+Die Beta ergänzt die Owlet-Anzeige in HA; sie ersetzt keine Gerätealarme.

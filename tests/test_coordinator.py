@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 
 from . import async_init_integration
 
-from tests.common import load_fixture
+from pytest_homeassistant_custom_component.common import load_fixture
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
@@ -22,18 +22,18 @@ async def test_coordinator_auth_error(hass: HomeAssistant) -> None:
     entry = await async_init_integration(hass, skip_setup=True)
 
     with patch(
-        "homeassistant.components.owlet.Sock.update_properties",
+        "custom_components.owlet.Sock.update_properties",
         side_effect=OwletAuthenticationError(),
     ), patch(
-        "homeassistant.components.owlet.OwletAPI.authenticate", return_value=None
+        "custom_components.owlet.OwletAPI.authenticate", return_value=None
     ), patch(
-        "homeassistant.components.owlet.OwletAPI.get_devices",
-        return_value=json.loads(load_fixture("get_devices.json", "owlet")),
+        "custom_components.owlet.OwletAPI.get_devices",
+        return_value=json.loads(load_fixture("get_devices.json")),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
-        assert entry.state == ConfigEntryState.SETUP_RETRY
+        assert entry.state == ConfigEntryState.SETUP_ERROR
 
 
 async def test_coordinator_connection_error(hass: HomeAssistant) -> None:
@@ -41,13 +41,13 @@ async def test_coordinator_connection_error(hass: HomeAssistant) -> None:
     entry = await async_init_integration(hass, skip_setup=True)
 
     with patch(
-        "homeassistant.components.owlet.Sock.update_properties",
+        "custom_components.owlet.Sock.update_properties",
         side_effect=OwletConnectionError(),
     ), patch(
-        "homeassistant.components.owlet.OwletAPI.authenticate", return_value=None
+        "custom_components.owlet.OwletAPI.authenticate", return_value=None
     ), patch(
-        "homeassistant.components.owlet.OwletAPI.get_devices",
-        return_value=json.loads(load_fixture("get_devices.json", "owlet")),
+        "custom_components.owlet.OwletAPI.get_devices",
+        return_value=json.loads(load_fixture("get_devices.json")),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -60,13 +60,13 @@ async def test_coordinator_error(hass: HomeAssistant) -> None:
     entry = await async_init_integration(hass, skip_setup=True)
 
     with patch(
-        "homeassistant.components.owlet.Sock.update_properties",
+        "custom_components.owlet.Sock.update_properties",
         side_effect=Exception(),
     ), patch(
-        "homeassistant.components.owlet.OwletAPI.authenticate", return_value=None
+        "custom_components.owlet.OwletAPI.authenticate", return_value=None
     ), patch(
-        "homeassistant.components.owlet.OwletAPI.get_devices",
-        return_value=json.loads(load_fixture("get_devices.json", "owlet")),
+        "custom_components.owlet.OwletAPI.get_devices",
+        return_value=json.loads(load_fixture("get_devices.json")),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()

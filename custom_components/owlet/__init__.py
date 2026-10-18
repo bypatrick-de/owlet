@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import timedelta
 import logging
 
 from pyowletapi.api import OwletAPI
 from pyowletapi.exceptions import (
     OwletAuthenticationError,
+    OwletCredentialsError,
     OwletConnectionError,
     OwletDevicesError,
-    OwletEmailError,
-    OwletPasswordError,
 )
 from pyowletapi.sock import Sock
 
@@ -27,7 +27,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import CONF_OWLET_EXPIRY, CONF_OWLET_REFRESH, DOMAIN, SUPPORTED_VERSIONS
+from .const import CONF_OWLET_EXPIRY, CONF_OWLET_REFRESH, DOMAIN, POLLING_INTERVAL, SUPPORTED_VERSIONS
 from .coordinator import OwletCoordinator
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.SWITCH]
@@ -53,7 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         devices = await owlet_api.get_devices(SUPPORTED_VERSIONS)
 
-    except (OwletAuthenticationError, OwletEmailError, OwletPasswordError) as err:
+    except (OwletAuthenticationError, OwletCredentialsError) as err:
         _LOGGER.error("Credentials no longer valid, please setup owlet again")
         raise ConfigEntryAuthFailed(
             f"Credentials expired for {entry.data[CONF_USERNAME]}"
@@ -73,7 +73,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entry, data={**entry.data, **devices["tokens"]}
         )
 
-    scan_interval = entry.options.get(CONF_SCAN_INTERVAL)
+    scan_interval = entry.options.get(CONF_SCAN_INTERVAL, POLLING_INTERVAL)
     coordinators = {
         device["device"]["dsn"]: OwletCoordinator(
             hass, Sock(owlet_api, device["device"]), scan_interval, entry
@@ -92,7 +92,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    entry.async_on_unload(entry.add_update_listener(async_update_options))
+
     return True
+
+
+async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Apply the polling interval without reloading or resetting authentication."""
+    interval = timedelta(seconds=entry.options.get(CONF_SCAN_INTERVAL, POLLING_INTERVAL))
+    for coordinator in hass.data[DOMAIN][entry.entry_id].values():
+        coordinator.update_interval = interval
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
